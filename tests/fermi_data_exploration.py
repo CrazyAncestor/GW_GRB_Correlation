@@ -1,92 +1,21 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from astropy.io import fits
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from fermi_time_data import preprocess_time_data, duration, filtering
-from fermi_location_data import preprocess_location_data
-from fermi_tte_data import preprocess_tte_data
-from fermi_poshist_data import preprocess_poshist_data, interpolate_qs_for_time, plot_all_detector_positions
+# Add src/ to sys.path
+script_dir = os.path.dirname(__file__)
+src_path = os.path.abspath(os.path.join(script_dir, '..', 'src/gw_grb_correlation'))
+sys.path.insert(0, src_path)
 
-from fermi_time_data import create_time_data_plots
+from fermi_data_preprocessing import download_and_preprocess_fermi_data
+from fermi_poshist_data import plot_all_detector_positions
+from fermi_time_data import create_time_data_plots, duration, filtering
 from fermi_location_data import create_location_data_plots
 
-def load_npy_to_dataframe(data_type, PRINT_HEAD = False):
+def read_GW_data(file_path):
     """
-    Loads a .npy file into a Pandas DataFrame with allow_pickle=True and prints its info and head.
-    :param data_type: Identifier for the dataset (e.g., 'time', 'tte', 'location')
-    :return: Loaded DataFrame
-    """
-    
-    file_path = f'./fermi_data/{data_type}/{data_type}_data.npy'
-    df = pd.DataFrame(np.load(file_path, allow_pickle=True))
-    if data_type=='time':
-        df.columns = ['ID', 'TSTART', 'TSTOP', 'T90', 'DATE']
-    elif data_type =='tte':
-        detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
-        df.columns = ['ID'] + [f"{detector}_PH_CNT" for detector in detectors]
-    elif data_type == 'location':
-        df.columns = ['ID', 'RA', 'DEC']
-    elif data_type =='poshist':
-        df.columns = ['TSTART', 'QSJ_1', 'QSJ_2','QSJ_3','QSJ_4']
-    elif data_type =='fermi':
-        detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
-        df.columns = ['ID', 'TSTART', 'TSTOP', 'T90', 'DATE']  + [f"{detector}_PH_CNT" for detector in detectors] + ['RA', 'DEC'] + ['QSJ_1', 'QSJ_2','QSJ_3','QSJ_4']
-    if PRINT_HEAD:
-        print(f"\nData from {file_path}:")
-        print(df.info())
-        print(df.head())
-    return df
-
-def merge_dataframes(time_df, tte_df, location_df, poshist_df, print_info = False):
-    """
-    Merges time, tte, and location DataFrames on a common ID using an inner join.
-    :param time_df: DataFrame containing time data
-    :param tte_df: DataFrame containing tte data
-    :param location_df: DataFrame containing location data
-    :return: Merged DataFrame
-    """
-    
-    merged_df = time_df.merge(tte_df, on='ID', how='inner')
-    merged_df = merged_df.merge(location_df, on='ID', how='inner')
-    GRB_poshist = interpolate_qs_for_time(poshist_df, merged_df['TSTART'])
-    
-    merged_df = merged_df.merge(GRB_poshist, on='TSTART', how='inner')
-
-    if print_info:
-        print("\nMerged Data:")
-        print(merged_df.info())
-        print(merged_df.head())
-
-    return merged_df
-
-def preprocess_fermi_data():
-    # Load and display the data
-    time_data = load_npy_to_dataframe('time')
-    location_data = load_npy_to_dataframe('location')
-    tte_data = load_npy_to_dataframe('tte')
-    poshist_data = load_npy_to_dataframe('poshist')
-
-    # Merge the data
-    merged_data = merge_dataframes(time_data, tte_data, location_data, poshist_data)
-    
-    output_dir = f"./fermi_data/fermi/"
-    os.makedirs(output_dir, exist_ok=True)
-    # Save the merged data to a .npy file
-    np.save(output_dir + "fermi_data.npy", merged_data.to_records(index=False))  # Convert to NumPy structured array
-    print(f"\nPreprocessed data saved to {output_dir}")
-    
-    # Save the merged data to a .csv file
-    merged_data.to_csv(output_dir + "fermi_data.csv", index=False)  # Save without row indices
-    print(f"\nPreprocessed data saved to {output_dir}")
-
-    return merged_data
-
-def read_csv_to_dataframe(file_path):
-    """
-    Reads a CSV file into a Pandas DataFrame.
+    Reads the GW data from a CSV file into a Pandas DataFrame.
     
     :param file_path: Path to the CSV file.
     :return: Pandas DataFrame containing the CSV data.
@@ -101,7 +30,7 @@ def read_csv_to_dataframe(file_path):
         print(f"Error reading the file: {e}")
         return None
     
-def remove_duplicate_times(gw_data, threshold=1.0):
+def remove_duplicate_times_in_gw_data(gw_data, threshold=1.0):
     """
     Removes 'times' values from gw_data that are within a threshold of each other (in seconds).
     
@@ -183,23 +112,16 @@ def compare_time_within_range(fermi_data, gw_data, time_range_seconds=86400):
     return matched_df
 
 if __name__ == "__main__":
-    # Get Fermi data
-    start_from_raw_data = False
-    if start_from_raw_data:
-        # Download and preprocess raw data
-        time_data = preprocess_time_data(2025, 2026)
-        location_data = preprocess_location_data(2025, 2026)
-        tte_data = preprocess_tte_data(2025, 2026)
-        poshist_data = preprocess_poshist_data(2025, 2026)
-        fermi_data = preprocess_fermi_data()
 
-        # Explore the dataset
-        create_time_data_plots(time_data, 'plots')
-        create_location_data_plots(location_data, 'plots')
-        plot_all_detector_positions(fermi_data.head(9))
-    else:
-        # Load existing preprocessed data
-        fermi_data = load_npy_to_dataframe(data_type='fermi')
+    # Data acquisition and data wrangling
+    start_year = 2025
+    end_year = 2026
+    fermi_data = download_and_preprocess_fermi_data(start_year=start_year, end_year=end_year, download_or_not=False)
+
+    # Explore the dataset
+    create_time_data_plots(fermi_data, 'plots')
+    create_location_data_plots(fermi_data, 'plots')
+    plot_all_detector_positions(fermi_data.head(9))
     
     # Filter out short GRB data
     short_GRB_data = filtering(fermi_data, criteria={'T90': lambda x: x <= 2.1})
@@ -219,8 +141,8 @@ if __name__ == "__main__":
     print(short_GRB_data[short_GRB_data['ID'] == 'bn170817529'])
 
     # Load GW data
-    gw_data = read_csv_to_dataframe(f"./gw_data/totalgwdata.csv")
-    gw_times = remove_duplicate_times(gw_data)
+    gw_data = read_GW_data(f"./gw_data/totalgwdata.csv")
+    gw_times = remove_duplicate_times_in_gw_data(gw_data)
 
     # Find matched GRB-GW event pairs
     match = compare_time_within_range(short_GRB_data, gw_times, time_range_seconds=86400*3)

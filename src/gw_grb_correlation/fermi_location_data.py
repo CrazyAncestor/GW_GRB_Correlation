@@ -75,7 +75,6 @@ def process_fits_folder(fits_folder, df=None):
     return df
 
 def create_location_data_plots(df, output_folder):
-    df.columns = ['ID', 'RA', 'DEC']
     output_dir = f"./{output_folder}/"
     os.makedirs(output_dir, exist_ok=True)
     # Plot the scatter plot for RA vs DEC (location)

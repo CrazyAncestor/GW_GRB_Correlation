@@ -1,14 +1,9 @@
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
-import requests
 from fermi_download_data_functions import download_data
-from fermi_data_wrangling import show_data_hdu
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-import re
 import pandas as pd
 import csv
 

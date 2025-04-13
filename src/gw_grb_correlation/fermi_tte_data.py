@@ -1,7 +1,6 @@
 from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
-import requests
 from fermi_download_data_functions import download_data
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
