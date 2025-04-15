@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from fermi_data_exploration import load_npy_to_dataframe
+from fermi_data_preprocessing import create_dataframe_and_name_column_from_data_files
 import tensorflow as tf
 from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.layers import Dense, Dropout
@@ -13,7 +13,7 @@ from tensorflow import reduce_sum
 from fermi_poshist_data import detector_orientation, plot_all_detector_positions
 
 # Load data
-fermi_data = load_npy_to_dataframe(data_type='fermi')
+fermi_data = create_dataframe_and_name_column_from_data_files(data_type='fermi')
 
 # List of detectors
 detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
@@ -93,7 +93,7 @@ else:
     # Train model
     history = model.fit(
         X_train_scaled, y_train,
-        epochs=300,
+        epochs=1000,
         batch_size=16,
         validation_data=(X_test_scaled, y_test)
     )

@@ -84,15 +84,22 @@ def process_fits_folder(fits_folder, df=None):
     # Define columns based on data type
     detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
     columns = ['ID'] + [f"{detector}_TRIG" for detector in detectors]
+    # If df is not provided, create an empty DataFrame
+    if df is None:
+        df = pd.DataFrame(columns=columns)
+    
     # Process files concurrently using ThreadPoolExecutor
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(extract_fits_data, os.path.join(fits_folder, f)) for f in files]
-        df = []
+        new_data = []
         for future in as_completed(futures):
             data = future.result()
-            df.append(data)
-        df = pd.DataFrame(df, columns=columns)
-    print(df.head(5))
+            new_data.append(data)
+    
+    # Append new data to the existing DataFrame
+    if new_data:
+        df = pd.concat([df, pd.DataFrame(new_data, columns=columns)], ignore_index=True)
+    
     return df
 
 if __name__ == "__main__":
