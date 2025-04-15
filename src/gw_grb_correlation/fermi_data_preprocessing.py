@@ -7,6 +7,7 @@ from fermi_time_data import preprocess_time_data
 from fermi_location_data import preprocess_location_data
 from fermi_tte_data import preprocess_tte_data
 from fermi_poshist_data import preprocess_poshist_data, interpolate_qs_for_time
+from fermi_trigger_data import preprocess_trigger_data
 
 def create_dataframe_and_name_column_from_data_files(data_type, PRINT_HEAD = False):
     """
@@ -26,16 +27,20 @@ def create_dataframe_and_name_column_from_data_files(data_type, PRINT_HEAD = Fal
         df.columns = ['ID', 'RA', 'DEC']
     elif data_type =='poshist':
         df.columns = ['TSTART', 'QSJ_1', 'QSJ_2','QSJ_3','QSJ_4']
+    elif data_type =='trigger':
+        detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
+        df.columns = ['ID'] + [f"{detector}_TRIG" for detector in detectors]
     elif data_type =='fermi':
         detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
-        df.columns = ['ID', 'TSTART', 'TSTOP', 'T90', 'DATE']  + [f"{detector}_PH_CNT" for detector in detectors] + ['RA', 'DEC'] + ['QSJ_1', 'QSJ_2','QSJ_3','QSJ_4']
+        df.columns = ['ID', 'TSTART', 'TSTOP', 'T90', 'DATE']  + [f"{detector}_PH_CNT" for detector in detectors] + ['RA', 'DEC'] + ['QSJ_1', 'QSJ_2','QSJ_3','QSJ_4'] + [f"{detector}_TRIG" for detector in detectors]
+    
     if PRINT_HEAD:
         print(f"\nData from {file_path}:")
         print(df.info())
         print(df.head())
     return df
 
-def merge_all_datatypes_in_fermi(time_df, tte_df, location_df, poshist_df, print_info = False):
+def merge_all_datatypes_in_fermi(time_df, tte_df, location_df, poshist_df, trigger_df, print_info = False):
     """
     Merges time, tte, and location DataFrames on a common ID using an inner join.
     :param time_df: DataFrame containing time data
@@ -49,6 +54,7 @@ def merge_all_datatypes_in_fermi(time_df, tte_df, location_df, poshist_df, print
     GRB_poshist = interpolate_qs_for_time(poshist_df.astype(float), merged_df['TSTART'].astype(float))
     
     merged_df = merged_df.merge(GRB_poshist, on='TSTART', how='inner')
+    merged_df = merged_df.merge(trigger_df, on='ID', how='inner')
 
     if print_info:
         print("\nMerged Data:")
@@ -65,15 +71,17 @@ def download_and_preprocess_fermi_data(start_year, end_year, download_or_not = T
         location_data = preprocess_location_data(start_year, end_year)
         tte_data = preprocess_tte_data(start_year, end_year)
         poshist_data = preprocess_poshist_data(start_year, end_year)
+        trigger_data = preprocess_trigger_data(start_year, end_year)
 
     # Load and display the data
     time_data = create_dataframe_and_name_column_from_data_files('time')
     location_data = create_dataframe_and_name_column_from_data_files('location')
     tte_data = create_dataframe_and_name_column_from_data_files('tte')
     poshist_data = create_dataframe_and_name_column_from_data_files('poshist')
+    trigger_data = create_dataframe_and_name_column_from_data_files('trigger')
 
     # Merge the data
-    merged_data = merge_all_datatypes_in_fermi(time_data, tte_data, location_data, poshist_data)
+    merged_data = merge_all_datatypes_in_fermi(time_data, tte_data, location_data, poshist_data, trigger_data)
     
     output_dir = f"./fermi_data/fermi/"
     os.makedirs(output_dir, exist_ok=True)
@@ -90,6 +98,6 @@ def download_and_preprocess_fermi_data(start_year, end_year, download_or_not = T
 
 
 if __name__ == "__main__":
-    start_year = 2025
+    start_year = 2015
     end_year = 2026
-    fermi_data = download_and_preprocess_fermi_data(start_year=start_year, end_year=end_year, download_or_not=True)
+    fermi_data = download_and_preprocess_fermi_data(start_year=start_year, end_year=end_year, download_or_not=False)

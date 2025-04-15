@@ -35,3 +35,8 @@ def show_data_hdu(fits_file, hdu_num, snapshot_filename="header_snapshot.txt"):
                 snapshot_file.write(line + "\n")
 
         print(f"\nHeader snapshot saved to {snapshot_filename}")
+
+
+if __name__ == "__main__":
+    show_data_hdu('glg_bcat_all_bn170817529_v01.fit', hdu_num=1)
+
