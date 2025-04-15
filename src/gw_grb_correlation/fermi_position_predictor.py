@@ -23,7 +23,7 @@ PH_CNT_columns = [f"{detector}_PH_CNT" for detector in detectors]
 TRIG_columns = [f"{detector}_TRIG" for detector in detectors]
 fermi_data[PH_CNT_columns] = np.array(fermi_data[PH_CNT_columns].values.astype(np.float64)) * np.array(fermi_data[TRIG_columns].values.astype(np.float64))
 
-input_columns = ['QSJ_1', 'QSJ_2', 'QSJ_3', 'QSJ_4'] + [f"{detector}_PH_CNT" for detector in detectors]
+input_columns = ['QSJ_1', 'QSJ_2', 'QSJ_3', 'QSJ_4'] + [f"{detector}_TRIG" for detector in detectors]
 
 # Extract inputs (X)
 X = fermi_data[input_columns].values.astype(np.float64)
