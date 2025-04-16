@@ -46,6 +46,14 @@ Install dependencies from requirements.txt inside the virtual environment:
 $pip install -r requirements.txt
 This ensures that the packages are installed locally in your virtual environment and not globally.
 
+Unit Tests
+--------
+To run the Unit Tests
+Use the unittest module to discover and run all tests in the tests folder:
+$python -m unittest discover
+Alternatively, you can run the specific test file:
+$python -m unittest test_fermi_data.py
+
 
 Features
 --------

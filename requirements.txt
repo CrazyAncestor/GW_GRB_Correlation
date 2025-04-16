@@ -1,3 +1,4 @@
+unittest
 astropy==5.3.4
 beautifulsoup4==4.12.3
 matplotlib==3.8.3
