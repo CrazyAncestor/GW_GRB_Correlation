@@ -1,3 +1,6 @@
+# This file contains functions for processing Fermi position history (POSHIST) data.
+# Functions include quaternion interpolation and spacecraft direction calculations.
+
 from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +10,12 @@ import os
 import pandas as pd
 import csv
 
+# Function: preprocess_poshist_data
+# Input:
+# - year_start (int): Start year for data processing.
+# - year_end (int): End year for data processing.
+# Output:
+# - pd.DataFrame: Processed POSHIST data.
 def preprocess_poshist_data(year_start, year_end):
     # Create an empty DataFrame
     columns = ['TSTART', 'QSJ_1', 'QSJ_2', 'QSJ_3', 'QSJ_4']
@@ -50,6 +59,12 @@ def preprocess_poshist_data(year_start, year_end):
     np.save(npy_file_name, poshist_data.to_numpy())  # Save as .npy file
     return poshist_data
 
+# Function: extract_fits_data
+# Input:
+# - fits_file (str): Path to the FITS file.
+# - sample_size (int): Number of samples to extract.
+# Output:
+# - tuple: Extracted time and quaternion data.
 def extract_fits_data(fits_file, sample_size=1000):
     with fits.open(fits_file) as hdul:
         data = hdul[1].data
@@ -75,6 +90,12 @@ def extract_fits_data(fits_file, sample_size=1000):
             qs_4[indices]
         )
 
+# Function: process_one_file
+# Input:
+# - fits_path (str): Path to the FITS file.
+# - output_folder (str): Folder to save processed data.
+# Output:
+# - None: Saves processed data to a CSV file.
 def process_one_file(fits_path, output_folder):
     fits_name = os.path.basename(fits_path)
     try:
@@ -97,6 +118,13 @@ def process_one_file(fits_path, output_folder):
     except Exception as e:
         print(f"Error processing {fits_name}: {e}")
 
+# Function: save_data_to_csv
+# Input:
+# - fits_folder (str): Folder containing FITS files.
+# - output_folder (str): Folder to save CSV files.
+# - max_workers (int): Number of threads for concurrent processing.
+# Output:
+# - None: Saves processed data to CSV files.
 def save_data_to_csv(fits_folder, output_folder, max_workers=8):
     os.makedirs(output_folder, exist_ok=True)
 
@@ -111,6 +139,12 @@ def save_data_to_csv(fits_folder, output_folder, max_workers=8):
         for future in as_completed(futures):
             pass  # We already log inside `process_one_file`
     
+# Function: combine_csv_to_npy
+# Input:
+# - csv_folder (str): Folder containing CSV files.
+# - output_path (str): Path to save the combined NPY file.
+# Output:
+# - None: Saves combined data to an NPY file.
 def combine_csv_to_npy(csv_folder, output_path='combined_data.npy'):
     all_data = []
 

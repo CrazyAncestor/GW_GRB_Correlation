@@ -4,7 +4,13 @@ import io
 import numpy as np
 import pandas as pd
 
-# Function to extract location (RA, DEC) or time-related data (DATE, T90) from a FITS file
+# Function: show_data_hdu
+# Input:
+# - fits_file (str): Path to the FITS file.
+# - hdu_num (int): HDU number to display.
+# - snapshot_filename (str): File to save the header snapshot.
+# Output:
+# - None: Prints HDU information and saves the header snapshot to a file.
 def show_data_hdu(fits_file, hdu_num, snapshot_filename="header_snapshot.txt"):
     with fits.open(fits_file) as hdul:
         # Capture HDU info output
@@ -38,17 +44,14 @@ def show_data_hdu(fits_file, hdu_num, snapshot_filename="header_snapshot.txt"):
 
         print(f"\nHeader snapshot saved to {snapshot_filename}")
 
+# Function: interpolate_qs_for_time
+# Input:
+# - df (pd.DataFrame): DataFrame containing time and quaternion columns.
+# - time_values (pd.Series): Times for which to interpolate quaternion values.
+# Output:
+# - pd.DataFrame: DataFrame with interpolated quaternion values.
 def interpolate_qs_for_time(df, time_values):
-    """
-    Interpolates the values of QSJ_1, QSJ_2, QSJ_3, QSJ_4 for each time in the `time_values` column.
-
-    Parameters:
-    df (pd.DataFrame): The DataFrame containing the time and quaternion columns.
-    time_values (pd.Series): A pandas Series containing the times for which you want to interpolate the quaternion values.
-
-    Returns:
-    pd.DataFrame: DataFrame with interpolated quaternion values for each time in `time_values`.
-    """
+    
     # Ensure that the time column is sorted
     df = df.sort_values(by='TSTART')
 
@@ -76,18 +79,14 @@ def interpolate_qs_for_time(df, time_values):
     interpolated_df = pd.DataFrame(interpolated_qs, columns=['TSTART', 'QSJ_1', 'QSJ_2', 'QSJ_3', 'QSJ_4'])
     return interpolated_df
 
+# Function: filtering
+# Input:
+# - df (pd.DataFrame): DataFrame to filter.
+# - criteria (dict): Dictionary of filtering conditions.
+# Output:
+# - pd.DataFrame: Filtered DataFrame.
 def filtering(df, criteria):
-    """
-    Filter the dataframe based on the given criteria.
-    
-    Parameters:
-    - df (pandas DataFrame): The DataFrame to filter.
-    - criteria (dict): Dictionary containing column names as keys and filtering conditions as values.
-    
-    Returns:
-    - pandas DataFrame: A new DataFrame that satisfies the filtering conditions.
-    """
-    
+        
     # Loop through the criteria and apply filters
     for column, condition in criteria.items():
         # Apply the filter condition to the DataFrame
@@ -95,5 +94,10 @@ def filtering(df, criteria):
     
     return df
 
+# Function: duration
+# Input:
+# - df (pd.DataFrame): DataFrame containing time data.
+# Output:
+# - float: Duration calculated as the difference between max TSTOP and min TSTART.
 def duration(df):
     return df['TSTOP'].max()-df['TSTART'].min()

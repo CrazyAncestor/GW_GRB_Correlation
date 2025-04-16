@@ -1,3 +1,6 @@
+# This file contains functions for downloading Fermi data from remote servers.
+# Functions include downloading files, retrieving directories, and processing bursts or daily data.
+
 import os
 import re
 import requests
@@ -5,8 +8,14 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
+# Function: download_file
+# Input:
+# - url (str): URL of the file to download.
+# - filename (str): Local filename to save the downloaded file.
+# Output:
+# - int: 1 if download is successful, 0 otherwise.
 def download_file(url, filename):
-    """Download a file from the given URL and save it locally."""
+    
     try:
         response = requests.get(url, stream=True)
         response.raise_for_status()
@@ -19,8 +28,13 @@ def download_file(url, filename):
     except requests.exceptions.RequestException:
         return 0  # Failed download
 
+# Function: get_directories
+# Input:
+# - url (str): URL to retrieve directories from.
+# Output:
+# - list: List of directory names.
 def get_directories(url):
-    """Retrieve list of directories from a given URL."""
+    
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -30,8 +44,15 @@ def get_directories(url):
     except requests.exceptions.RequestException:
         return []
 
+# Function: get_available_versions
+# Input:
+# - data_url (str): URL to check for available versions.
+# - identifier (str): Identifier for the data entry.
+# - file_prefix (str): Prefix of the file to search for.
+# Output:
+# - list: Sorted list of available version numbers.
 def get_available_versions(data_url, identifier, file_prefix):
-    """Retrieve a sorted list of available versions for a given data entry (burst or daily)."""
+    
     try:
         response = requests.get(data_url)
         if response.status_code != 200:
@@ -51,8 +72,18 @@ def get_available_versions(data_url, identifier, file_prefix):
     except Exception:
         return []
     
+# Function: process_burst
+# Input:
+# - BASE_URL (str): Base URL for burst data.
+# - download_dir (str): Directory to save downloaded files.
+# - year (int): Year of the burst.
+# - burst (str): Burst identifier.
+# - file_prefix (str): Prefix of the file to download.
+# - missing_bursts (list): List to store missing bursts.
+# Output:
+# - int: 1 if successful, 0 otherwise.
 def process_burst(BASE_URL, download_dir, year, burst, file_prefix, missing_bursts):
-    """Process a single burst and download the latest available version."""
+    
     burst_url = f"{BASE_URL}{year}/{burst}/current/"
     available_versions = get_available_versions(burst_url, burst, file_prefix)
 
@@ -71,8 +102,18 @@ def process_burst(BASE_URL, download_dir, year, burst, file_prefix, missing_burs
 
     return 0  # Failed to download
 
+# Function: process_daily
+# Input:
+# - BASE_URL (str): Base URL for daily data.
+# - download_dir (str): Directory to save downloaded files.
+# - year (int): Year of the data.
+# - month (int): Month of the data.
+# - day (int): Day of the data.
+# - file_prefix (str): Prefix of the file to download.
+# Output:
+# - int: 1 if successful, 0 otherwise.
 def process_daily(BASE_URL, download_dir, year, month, day, file_prefix):
-    """Process a single daily entry and download the latest available version."""
+    
     short_year = str(year)[-2:]  # Take only the last two digits of the year
     daily_url = f"{BASE_URL}{year}/{month:02d}/{day:02d}/current/"
     identifier = f"{short_year}{month:02d}{day:02d}"
@@ -91,8 +132,16 @@ def process_daily(BASE_URL, download_dir, year, month, day, file_prefix):
     
     return 0  # Failed to download
 
+# Function: download_data
+# Input:
+# - year_range (range): Range of years to download data for.
+# - Daily_or_Burst (str): Type of data ('Daily' or 'Burst').
+# - url_file_string (str): File string to identify data.
+# - output_dir (str): Directory to save downloaded data.
+# Output:
+# - None: Downloads data and saves missing entries to a file.
 def download_data(year_range, Daily_or_Burst, url_file_string, output_dir):
-    """Download Fermi GBM data for the specified year range and data type."""
+    
     total_files_downloaded = 0
     tasks = []
     max_workers = 10  

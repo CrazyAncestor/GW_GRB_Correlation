@@ -1,10 +1,19 @@
+# This file contains functions for visualizing Fermi data.
+# Functions include creating plots for various datasets and saving them to files.
+
 from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from matplotlib.ticker import LogFormatterMathtext
 import pandas as pd
-# Function to create plots for the time data
+
+# Function: create_time_data_plots
+# Input:
+# - df (pd.DataFrame): DataFrame containing time data.
+# - output_folder (str): Folder to save the plots.
+# Output:
+# - None: Saves time-based plots to the specified folder.
 def create_time_data_plots(df, output_folder):
     output_dir = f"./{output_folder}/"
     os.makedirs(output_dir, exist_ok=True)
@@ -61,6 +70,12 @@ def create_time_data_plots(df, output_folder):
     plt.savefig(os.path.join(output_dir, "T90_distribution.png"))
     plt.close()
 
+# Function: create_location_data_plots
+# Input:
+# - df (pd.DataFrame): DataFrame containing location data.
+# - output_folder (str): Folder to save the plots.
+# Output:
+# - None: Saves location-based plots to the specified folder.
 def create_location_data_plots(df, output_folder):
     output_dir = f"./{output_folder}/"
     os.makedirs(output_dir, exist_ok=True)
@@ -71,7 +86,11 @@ def create_location_data_plots(df, output_folder):
     plt.title('GRB Events Distribution', fontsize=18)
     plt.savefig(os.path.join(output_dir, "RA_DEC_plot.png"))
     
-# Function to plot the angular probability distribution from a FITS file
+# Function: plot_certain_event_prob_dist
+# Input:
+# - fits_file (str): Path to the FITS file.
+# Output:
+# - None: Saves a plot of the angular probability distribution.
 def plot_certain_event_prob_dist(fits_file):
     # Create the output folder if it doesn't exist
     output_folder = "./plots"
@@ -103,9 +122,15 @@ def plot_certain_event_prob_dist(fits_file):
     plt.title("GRB Probability Distribution", fontsize=18)
     plt.savefig(os.path.join(output_folder, "location_prob.png"))
     plt.close()
-    
+
+# Function: plot_count_rate
+# Input:
+# - df (pd.DataFrame): DataFrame containing time data.
+# - bins (int): Number of bins for the histogram.
+# Output:
+# - None: Displays a plot of the count rate over time.
 def plot_count_rate(df, bins=256):
-    """Plot the count rate over time."""
+    
     # Create time bins
     time = df['TIME']
     bin_edges = np.linspace(time.min(), time.max(), bins)
@@ -123,8 +148,15 @@ def plot_count_rate(df, bins=256):
     plt.title('Count Rate Over Time')
     plt.show()
 
+# Function: azzen_to_cartesian
+# Input:
+# - az (float or np.array): Azimuth angle.
+# - zen (float or np.array): Zenith angle.
+# - deg (bool): Whether the input is in degrees.
+# Output:
+# - np.array: Cartesian coordinates.
 def azzen_to_cartesian(az, zen, deg=True):
-    """Convert azimuth and zenith angle to Cartesian coordinates."""
+    
     if deg:
         az = np.radians(az)
         zen = np.radians(zen)
@@ -135,8 +167,13 @@ def azzen_to_cartesian(az, zen, deg=True):
     
     return np.array([x, y, z])
 
+# Function: spacecraft_direction_cosines
+# Input:
+# - quat (np.array): Quaternion array.
+# Output:
+# - np.array: Direction cosine matrix.
 def spacecraft_direction_cosines(quat):
-    """Calculate the direction cosine matrix from the attitude quaternions."""
+    
     # Quaternion to Direction Cosine Matrix (DCM) conversion
     q1, q2, q3, q0 = quat # On Fermi, it's x, y, z, w
     # Rotation matrix calculation based on quaternion components
@@ -148,18 +185,16 @@ def spacecraft_direction_cosines(quat):
     #sc_cosines = np.identity(3)
     return sc_cosines
 
+# Function: spacecraft_to_radec
+# Input:
+# - az (float or np.array): Azimuth angle.
+# - zen (float or np.array): Zenith angle.
+# - quat (np.array): Quaternion array.
+# - deg (bool): Whether the input/output is in degrees.
+# Output:
+# - tuple: RA and Dec in J2000 frame.
 def spacecraft_to_radec(az, zen, quat, deg=True):
-    """Convert a position in spacecraft coordinates (Az/Zen) to J2000 RA/Dec.
     
-    Args:
-        az (float or np.array): Spacecraft azimuth
-        zen (float or np.array): Spacecraft zenith
-        quat (np.array): (4, `n`) spacecraft attitude quaternion array
-        deg (bool, optional): True if input/output in degrees.
-    
-    Returns:
-        (np.array, np.array): RA and Dec of the transformed position
-    """
     ndim = len(quat.shape)
     if ndim == 2:
         numquats = quat.shape[1]
@@ -219,6 +254,11 @@ def spacecraft_to_radec(az, zen, quat, deg=True):
     
     return np.squeeze(ra), np.squeeze(dec)
 
+# Function: detector_orientation
+# Input:
+# - df (pd.DataFrame): DataFrame containing quaternion and detector data.
+# Output:
+# - list: Orientation of detectors in Cartesian coordinates.
 def detector_orientation(df):
     def RA_DEC_all_detector_at_quat(row):
         quat = np.array([row['QSJ_1'], row['QSJ_2'], row['QSJ_3'], row['QSJ_4']])
@@ -254,6 +294,12 @@ def detector_orientation(df):
             orientation.append(azzen_to_cartesian(ra, dec))
     return orientation
 
+# Function: plot_all_detector_positions
+# Input:
+# - df (pd.DataFrame): DataFrame containing detector data.
+# - output_dir (str): Directory to save the plots.
+# Output:
+# - None: Saves plots of detector positions.
 def plot_all_detector_positions(df, output_dir="detector_plots"):
     def RA_DEC_all_detector_at_quat(row):
         quat = np.array([row['QSJ_1'], row['QSJ_2'], row['QSJ_3'], row['QSJ_4']])
@@ -284,7 +330,7 @@ def plot_all_detector_positions(df, output_dir="detector_plots"):
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
-    PHCNT_col_name = [f"{detector}_PH_CNT" for detector in detectors]\
+    PHCNT_col_name = [f"{detector}_PH_CNT" for detector in detectors]
     
     for _, row in df.iterrows():
         ra_dec_dict = RA_DEC_all_detector_at_quat(row)

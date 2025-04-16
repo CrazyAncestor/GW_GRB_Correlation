@@ -1,8 +1,18 @@
+# This file contains functions for displaying and extracting data from FITS files.
+# Functions include showing HDU information and saving header snapshots.
+
 from astropy.io import fits
 import sys
 import io
 
 # Function to extract location (RA, DEC) or time-related data (DATE, T90) from a FITS file
+# Function: show_data_hdu
+# Input:
+# - fits_file (str): Path to the FITS file.
+# - hdu_num (int): HDU number to display.
+# - snapshot_filename (str): File to save the header snapshot.
+# Output:
+# - None: Prints HDU information and saves the header snapshot to a file.
 def show_data_hdu(fits_file, hdu_num, snapshot_filename="header_snapshot.txt"):
     with fits.open(fits_file) as hdul:
         # Capture HDU info output

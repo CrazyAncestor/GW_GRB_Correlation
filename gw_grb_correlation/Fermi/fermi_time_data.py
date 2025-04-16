@@ -1,3 +1,6 @@
+# This file contains functions for processing Fermi time data.
+# Functions include extracting time-related data from FITS files and creating time-based plots.
+
 import os
 import numpy as np
 import pandas as pd
@@ -8,6 +11,12 @@ from matplotlib.ticker import LogFormatterMathtext
 import re
 from fermi_download_data_functions import download_data
 
+# Function: preprocess_time_data
+# Input:
+# - year_start (int): Start year for data processing.
+# - year_end (int): End year for data processing.
+# Output:
+# - pd.DataFrame: Processed time data.
 def preprocess_time_data(year_start, year_end):
     # Create an empty DataFrame with specific column names
     columns = ['ID', 'TSTART', 'TSTOP', 'T90']
@@ -39,16 +48,13 @@ def preprocess_time_data(year_start, year_end):
     np.save(npy_file_name, time_data.to_numpy())  # Save as .npy file
     return time_data
 
+# Function: extract_fits_data
+# Input:
+# - fits_file (str): Path to the FITS file.
+# Output:
+# - tuple: Extracted ID, TSTART, TSTOP, and T90 from the FITS file.
 def extract_fits_data(fits_file):
-    """
-    Extracts relevant data from the FITS file.
     
-    Parameters:
-    fits_file (str): Path to the FITS file.
-    
-    Returns:
-    tuple: Returns the extracted data.
-    """
     with fits.open(fits_file) as hdul:
         # Extract ID from the filename
         id = re.search(r'bn\d{9}', hdul[0].header['FILENAME'])
@@ -61,7 +67,12 @@ def extract_fits_data(fits_file):
 
         return (id, tstart, tstop, t90)  # ID, TSTART, TSTOP, T90
 
-# Function to process all FITS files in a folder and store the data in a DataFrame
+# Function: process_fits_folder
+# Input:
+# - fits_folder (str): Path to the folder containing FITS files.
+# - df (pd.DataFrame): Existing DataFrame to append data to (optional).
+# Output:
+# - pd.DataFrame: DataFrame containing processed data from FITS files.
 def process_fits_folder(fits_folder, df=None):
     # Get all FITS files in the folder
     files = [f for f in os.listdir(fits_folder) if f.endswith(('.fit', '.fits'))]

@@ -1,3 +1,6 @@
+# This file contains functions for processing Fermi trigger data.
+# Functions include extracting triggered detector information and saving processed data.
+
 import os
 import numpy as np
 import pandas as pd
@@ -8,6 +11,12 @@ from matplotlib.ticker import LogFormatterMathtext
 import re
 from fermi_download_data_functions import download_data
 
+# Function: preprocess_trigger_data
+# Input:
+# - year_start (int): Start year for data processing.
+# - year_end (int): End year for data processing.
+# Output:
+# - pd.DataFrame: Processed trigger data.
 def preprocess_trigger_data(year_start, year_end):
     # Create an empty DataFrame with specific column names
     detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
@@ -40,16 +49,13 @@ def preprocess_trigger_data(year_start, year_end):
     np.save(npy_file_name, trigger_data.to_numpy())  # Save as .npy file
     return trigger_data
 
+# Function: extract_fits_data
+# Input:
+# - fits_file (str): Path to the FITS file.
+# Output:
+# - tuple: Extracted ID and triggered detector information.
 def extract_fits_data(fits_file):
-    """
-    Extracts relevant data from the FITS file.
     
-    Parameters:
-    fits_file (str): Path to the FITS file.
-    
-    Returns:
-    tuple: Returns the extracted data.
-    """
     with fits.open(fits_file) as hdul:
         # Extract ID from the filename
         id = re.search(r'bn\d{9}', hdul[0].header['FILENAME'])
@@ -76,7 +82,12 @@ def extract_fits_data(fits_file):
 
         return tuple(result)
 
-# Function to process all FITS files in a folder and store the data in a DataFrame
+# Function: process_fits_folder
+# Input:
+# - fits_folder (str): Path to the folder containing FITS files.
+# - df (pd.DataFrame): Existing DataFrame to append data to (optional).
+# Output:
+# - pd.DataFrame: DataFrame containing processed data from FITS files.
 def process_fits_folder(fits_folder, df=None):
     # Get all FITS files in the folder
     files = [f for f in os.listdir(fits_folder) if f.endswith(('.fit', '.fits'))]

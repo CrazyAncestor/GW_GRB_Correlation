@@ -1,3 +1,6 @@
+# This file contains functions for processing and visualizing Fermi location data.
+# Functions include extracting RA/DEC from FITS files and creating scatter plots.
+
 import os
 import numpy as np
 import pandas as pd
@@ -6,6 +9,13 @@ from astropy.io import fits
 from fermi_download_data_functions import download_data
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
+
+# Function: preprocess_location_data
+# Input:
+# - year_start (int): Start year for data processing.
+# - year_end (int): End year for data processing.
+# Output:
+# - pd.DataFrame: Processed location data.
 def preprocess_location_data(year_start, year_end):
     # Create an empty DataFrame with specific column names
     columns = ['ID', 'RA', 'DEC']
@@ -37,6 +47,11 @@ def preprocess_location_data(year_start, year_end):
     np.save(npy_file_name, location_data.to_numpy())  # Save as .npy file
     return location_data
 
+# Function: extract_fits_data
+# Input:
+# - filename (str): Path to the FITS file.
+# Output:
+# - tuple: Extracted ID, RA, and DEC from the FITS file.
 def extract_fits_data(filename):
     with fits.open(filename) as hdul:
         # Extract ID from the filename
@@ -48,7 +63,12 @@ def extract_fits_data(filename):
         DEC = hdul[1].header['CRVAL2']
     return id, RA, DEC
 
-# Function to process all FITS files in a folder and store the data in a DataFrame
+# Function: process_fits_folder
+# Input:
+# - fits_folder (str): Path to the folder containing FITS files.
+# - df (pd.DataFrame): Existing DataFrame to append data to (optional).
+# Output:
+# - pd.DataFrame: DataFrame containing processed data from FITS files.
 def process_fits_folder(fits_folder, df=None):
     # Get all FITS files in the folder
     files = [f for f in os.listdir(fits_folder) if f.endswith(('.fit', '.fits'))]
@@ -77,4 +97,4 @@ def process_fits_folder(fits_folder, df=None):
 # Entry point for the script
 if __name__ == "__main__":
     preprocess_location_data(2015, 2026)
-    
+

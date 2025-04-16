@@ -1,3 +1,7 @@
+# This file contains functions for preprocessing various types of Fermi data.
+# Functions include creating dataframes from .npy files and merging datasets.
+# It also includes a main function to download and preprocess Fermi data.
+
 import os
 import numpy as np
 import pandas as pd
@@ -10,12 +14,13 @@ from fermi_poshist_data import preprocess_poshist_data
 from fermi_trigger_data import preprocess_trigger_data
 from util import interpolate_qs_for_time
 
+# Function: create_dataframe_and_name_column_from_data_files
+# Input:
+# - data_type (str): Identifier for the dataset (e.g., 'time', 'tte', 'location').
+# - PRINT_HEAD (bool): Whether to print the head of the DataFrame.
+# Output:
+# - pd.DataFrame: Loaded DataFrame with appropriate column names.
 def create_dataframe_and_name_column_from_data_files(data_type, PRINT_HEAD = False):
-    """
-    Loads a .npy file into a Pandas DataFrame with allow_pickle=True and prints its info and head.
-    :param data_type: Identifier for the dataset (e.g., 'time', 'tte', 'location')
-    :return: Loaded DataFrame
-    """
     
     file_path = f'./fermi_data/{data_type}/{data_type}_data.npy'
     df = pd.DataFrame(np.load(file_path, allow_pickle=True))
@@ -41,15 +46,18 @@ def create_dataframe_and_name_column_from_data_files(data_type, PRINT_HEAD = Fal
         print(df.head())
     return df
 
+# Function: merge_all_datatypes_in_fermi
+# Input:
+# - time_df (pd.DataFrame): DataFrame containing time data.
+# - tte_df (pd.DataFrame): DataFrame containing TTE data.
+# - location_df (pd.DataFrame): DataFrame containing location data.
+# - poshist_df (pd.DataFrame): DataFrame containing POSHIST data.
+# - trigger_df (pd.DataFrame): DataFrame containing trigger data.
+# - print_info (bool): Whether to print merged DataFrame info.
+# Output:
+# - pd.DataFrame: Merged DataFrame containing all data types.
 def merge_all_datatypes_in_fermi(time_df, tte_df, location_df, poshist_df, trigger_df, print_info = False):
-    """
-    Merges time, tte, and location DataFrames on a common ID using an inner join.
-    :param time_df: DataFrame containing time data
-    :param tte_df: DataFrame containing tte data
-    :param location_df: DataFrame containing location data
-    :return: Merged DataFrame
-    """
-    
+
     merged_df = time_df.merge(tte_df, on='ID', how='inner')
     merged_df = merged_df.merge(location_df, on='ID', how='inner')
     GRB_poshist = interpolate_qs_for_time(poshist_df.astype(float), merged_df['TSTART'].astype(float))
@@ -64,6 +72,13 @@ def merge_all_datatypes_in_fermi(time_df, tte_df, location_df, poshist_df, trigg
 
     return merged_df
 
+# Function: download_and_preprocess_fermi_data
+# Input:
+# - start_year (int): Start year for data processing.
+# - end_year (int): End year for data processing.
+# - download_or_not (bool): Whether to download data before processing.
+# Output:
+# - pd.DataFrame: Merged and preprocessed Fermi data.
 def download_and_preprocess_fermi_data(start_year, end_year, download_or_not = True):
     
     if download_or_not:

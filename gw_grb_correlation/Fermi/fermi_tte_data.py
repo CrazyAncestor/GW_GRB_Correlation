@@ -1,3 +1,6 @@
+# This file contains functions for processing Fermi TTE (Time-Tagged Event) data.
+# Functions include extracting photon data and plotting count rates.
+
 from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +9,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import re
 import pandas as pd
+
+# Function: preprocess_tte_data
+# Input:
+# - year_start (int): Start year for data processing.
+# - year_end (int): End year for data processing.
+# Output:
+# - pd.DataFrame: Processed TTE data.
 def preprocess_tte_data(year_start, year_end):
     # Download Data
     detectors = [f"n{i}" for i in range(10)] + ["na", "nb", "b0", "b1"]
@@ -54,16 +64,13 @@ def preprocess_tte_data(year_start, year_end):
     np.save(npy_file_name, tte_data_pivot.to_numpy())  # Save as .npy file
     return tte_data_pivot
 
+# Function: extract_fits_data
+# Input:
+# - fits_file (str): Path to the FITS file.
+# Output:
+# - tuple: Extracted ID, detector name, and photon count.
 def extract_fits_data(fits_file):
-    """
-    Extracts relevant data from the FITS file, either location or time-related information.
     
-    Parameters:
-    fits_file (str): Path to the FITS file.
-    
-    Returns:
-    tuple: Returns the extracted data.
-    """
     with fits.open(fits_file) as hdul:
         # Extract ID from the filename
         id = re.search(r'bn\d{9}', hdul[0].header['FILENAME'])
@@ -76,7 +83,12 @@ def extract_fits_data(fits_file):
 
         return (id, detector, ph_cnt)  # ID, Detector name Photon Count
 
-# Function to process all FITS files in a folder and store the data in a DataFrame
+# Function: process_fits_folder
+# Input:
+# - fits_folder (str): Path to the folder containing FITS files.
+# - df (pd.DataFrame): Existing DataFrame to append data to (optional).
+# Output:
+# - pd.DataFrame: DataFrame containing processed data from FITS files.
 def process_fits_folder(fits_folder, df=None):
     # Get all FITS files in the folder
     files = [f for f in os.listdir(fits_folder) if f.endswith(('.fit', '.fits'))]
