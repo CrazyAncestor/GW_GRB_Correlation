@@ -5,13 +5,15 @@ import pandas as pd
 
 # Add src/ to sys.path
 script_dir = os.path.dirname(__file__)
-src_path = os.path.abspath(os.path.join(script_dir, '..', 'gw_grb_correlation'))
+src_path = os.path.abspath(os.path.join(script_dir, '..', 'gw_grb_correlation/Fermi'))
 sys.path.insert(0, src_path)
 
 from fermi_data_preprocessing import download_and_preprocess_fermi_data
-from fermi_poshist_data import plot_all_detector_positions
+from visualization import plot_all_detector_positions, create_time_data_plots, create_location_data_plots
+from util import duration, filtering
+"""from fermi_poshist_data import plot_all_detector_positions
 from fermi_time_data import create_time_data_plots, duration, filtering
-from fermi_location_data import create_location_data_plots
+from fermi_location_data import create_location_data_plots"""
 
 def read_GW_data(file_path):
     """

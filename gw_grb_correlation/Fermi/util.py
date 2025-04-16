@@ -1,6 +1,8 @@
 from astropy.io import fits
 import sys
 import io
+import numpy as np
+import pandas as pd
 
 # Function to extract location (RA, DEC) or time-related data (DATE, T90) from a FITS file
 def show_data_hdu(fits_file, hdu_num, snapshot_filename="header_snapshot.txt"):

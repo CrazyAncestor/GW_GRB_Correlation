@@ -6,8 +6,9 @@ import pandas as pd
 from fermi_time_data import preprocess_time_data
 from fermi_location_data import preprocess_location_data
 from fermi_tte_data import preprocess_tte_data
-from fermi_poshist_data import preprocess_poshist_data, interpolate_qs_for_time
+from fermi_poshist_data import preprocess_poshist_data
 from fermi_trigger_data import preprocess_trigger_data
+from util import interpolate_qs_for_time
 
 def create_dataframe_and_name_column_from_data_files(data_type, PRINT_HEAD = False):
     """

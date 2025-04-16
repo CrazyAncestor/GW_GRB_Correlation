@@ -102,38 +102,5 @@ def process_fits_folder(fits_folder, df=None):
     
     return df
 
-def extract_photon_data(filename):
-    """Extract photon arrival times and energy channels from EVENTS HDU."""
-    with fits.open(filename) as hdul:
-        
-        events_data = hdul['EVENTS'].data
-        time = events_data['TIME']
-        pha = events_data['PHA']
-    return time, pha
-
-def plot_count_rate(time, bins=256):
-    """Plot the count rate over time."""
-    # Create time bins
-    bin_edges = np.linspace(time.min(), time.max(), bins)
-    bin_size = bin_edges[1] - bin_edges[0]
-    digitized = np.digitize(time, bin_edges)
-    
-    # Calculate count rate in each bin
-    count_rate = [np.sum(digitized == i) / bin_size for i in range(1, len(bin_edges))]
-    
-    # Plot count rate over time
-    plt.figure(figsize=(10, 5))
-    plt.plot(bin_edges[1:], count_rate, color='blue', alpha=0.7)
-    plt.xlabel('Time (s)')
-    plt.ylabel('Count Rate (counts/s)')
-    plt.title('Count Rate Over Time')
-    plt.show()
-
-def test():
-    filename = "./glg_tte_n2_bn250116524_v00.fit"
-    time, pha = extract_photon_data(filename)
-    plot_count_rate(time)
-
-
 if __name__ == "__main__":
     preprocess_tte_data(2015, 2026)
