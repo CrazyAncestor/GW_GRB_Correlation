@@ -2,6 +2,9 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["gw_grb_correlation*"]
+
 [project]
 name = "gw_grb_correlation"
 version = "0.1.0"
@@ -18,13 +21,16 @@ classifiers = [
 ]
 license = {text = "GNU General Public License v3"}
 dependencies = [
-  "astropy==5.3.4",
-  "beautifulsoup4==4.12.3",
-  "matplotlib==3.8.3",
-  "numpy==1.26.4",
-  "pandas==2.2.1",
-  "tqdm==4.66.2",
-  "requests==2.31.0",
+  "astropy",
+  "beautifulsoup4",
+  "h5py",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "requests",
+  "seaborn",
+  "tqdm",
+  "tensorflow",
 ]
 
 [project.optional-dependencies]
@@ -41,8 +47,6 @@ bugs = "https://github.com/CrazyAncestor, gulley-s/gw_grb_correlation/issues"
 changelog = "https://github.com/CrazyAncestor, gulley-s/gw_grb_correlation/blob/master/changelog.md"
 homepage = "https://github.com/CrazyAncestor, gulley-s/gw_grb_correlation"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]
